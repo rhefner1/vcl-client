@@ -1,0 +1,12 @@
+language: python
+
+env:
+  matrix:
+   - RUN_TESTS=true
+   - RUN_PYLINT=true
+
+install: ./ci/install_deps.sh
+
+script:
+ - ./ci/run_tests.sh
+ - ./ci/run_pylint.sh
