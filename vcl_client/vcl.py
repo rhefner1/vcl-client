@@ -83,7 +83,8 @@ def images(search, refresh):
         to_print = json.loads(cached_image_list)
 
     if search:
-        to_print = [image for image in to_print if search in image['Name']]
+        to_print = [image for image in to_print
+                    if search.lower() in image['Name'].lower()]
 
     click.echo(tabulate.tabulate(to_print, headers='keys'))
 
