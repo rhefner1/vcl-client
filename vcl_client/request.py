@@ -3,11 +3,10 @@
 import urllib2
 import xmlrpclib
 
-import keyring
-
 from vcl_client import cfg
 
 BOOT_ENDPOINT = 'XMLRPCaddRequest'
+IMAGES_ENDPOINT = 'XMLRPCgetImages'
 INSTANCE_LIST_ENDPOINT = 'XMLRPCgetRequestIds'
 
 
@@ -18,8 +17,8 @@ def call_api(endpoint, params):
     data = xmlrpclib.dumps(params, endpoint)
     headers = {
         'Content-Type': 'text/xml',
-        'X-User': cfg.get_conf(cfg.USERNAME_KEY),
-        'X-Pass': keyring.get_password('system', username),
+        'X-User': username,
+        'X-Pass': cfg.get_password(),
         'X-APIVERSION': '2'
     }
 
@@ -35,8 +34,14 @@ def boot(params):
     status = response[0][0]['status']
 
     if status != 'success':
-        raise RuntimeError("Got unknown status: %s. Full response: %s"
+        raise RuntimeError("Got unknown status: %s. Full response: %s."
                            % (status, response))
+
+
+def images():
+    """Calls the API and returns a list of images."""
+    response = call_api(IMAGES_ENDPOINT, ())
+    return response[0][0]
 
 
 def instance_list():

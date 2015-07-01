@@ -38,6 +38,7 @@ def vcl():
               help='Timeout if user inactivity is detected.')
 def boot(image_id, start, length, timeout):
     """Starts an instance."""
+    auth_check()
     params = (image_id,
               start,
               length,
@@ -78,7 +79,9 @@ def instance_list():
                 r['state'],
                 r['ostype'],
                 r['OS']
-            ] for r in instances]
+            ]
+            for r in instances
+        ]
         click.echo(tabulate.tabulate(instances, headers=headers))
     else:
         click.echo('No instances found.')
@@ -107,10 +110,8 @@ def images(filter_term, refresh):
     cached_image_list = cfg.get_conf(cfg.IMAGE_LIST_KEY)
 
     if refresh or not cached_image_list:
-        endpoint = 'XMLRPCgetImages'
-        response = request.call_api(endpoint, ())
-        all_images = response[0][0]
-        to_print = [{'ID': i['id'], 'Name': i['name']} for i in all_images]
+        all_images = request.images()
+        to_print = [[i['id'], i['name']] for i in all_images]
 
         # Caching response for subsequent queries
         cfg.write_conf(cfg.IMAGE_LIST_KEY, json.dumps(to_print))
@@ -119,9 +120,10 @@ def images(filter_term, refresh):
 
     if filter_term:
         to_print = [image for image in to_print
-                    if filter_term.lower() in image['Name'].lower()]
+                    if filter_term.lower() in image[1].lower()]
 
-    click.echo(tabulate.tabulate(to_print, headers='keys'))
+    headers = ['ID', 'Name']
+    click.echo(tabulate.tabulate(to_print, headers=headers))
 
 
 if __name__ == '__main__':
