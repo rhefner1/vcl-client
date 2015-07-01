@@ -44,9 +44,24 @@ def login(username, password):
     keyring.set_password('system', username, password)
 
 
+@vcl.command(name='list')
 def instance_list():
     """Lists the currently running instances."""
-    pass
+    instances = request.instance_list()
+
+    if instances:
+        headers = ['Image ID', 'Name', 'State', 'OS Type', 'OS']
+        instances = [
+            [
+                r['imageid'],
+                r['imagename'],
+                r['state'],
+                r['ostype'],
+                r['OS']
+            ] for r in instances]
+        click.echo(tabulate.tabulate(instances, headers=headers))
+    else:
+        click.echo('No instances found.')
 
 
 def extend():

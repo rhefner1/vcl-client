@@ -7,6 +7,8 @@ import keyring
 
 from vcl_client import cfg
 
+INSTANCE_LIST_ENDPOINT = 'XMLRPCgetRequestIds'
+
 
 def call_api(endpoint, params):
     """Calls the API."""
@@ -24,3 +26,9 @@ def call_api(endpoint, params):
     response = urllib2.urlopen(req)
     raw_xml = response.read()
     return xmlrpclib.loads(raw_xml)
+
+
+def instance_list():
+    """Calls the API and returns a list of instances."""
+    response = call_api(INSTANCE_LIST_ENDPOINT, ())
+    return response[0][0]['requests']
