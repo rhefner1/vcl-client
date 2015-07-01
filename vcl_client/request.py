@@ -7,6 +7,7 @@ import keyring
 
 from vcl_client import cfg
 
+BOOT_ENDPOINT = 'XMLRPCaddRequest'
 INSTANCE_LIST_ENDPOINT = 'XMLRPCgetRequestIds'
 
 
@@ -26,6 +27,16 @@ def call_api(endpoint, params):
     response = urllib2.urlopen(req)
     raw_xml = response.read()
     return xmlrpclib.loads(raw_xml)
+
+
+def boot(params):
+    """Calls the APi and throws an error if request isn't successful."""
+    response = call_api(BOOT_ENDPOINT, params)
+    status = response[0][0]['status']
+
+    if status != 'success':
+        raise RuntimeError("Got unknown status: %s. Full response: %s"
+                           % (status, response))
 
 
 def instance_list():

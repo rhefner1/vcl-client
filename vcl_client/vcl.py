@@ -25,11 +25,31 @@ def vcl():
     """Creates and manages VMs hosted by the Apache VCL service."""
 
 
-def boot():
+@vcl.command()
+@click.argument('image_id')
+@click.option('--start',
+              default='now',
+              help='UNIX timestamp for the start of the reservation.')
+@click.option('--length',
+              default=480,
+              help='Length of the reservation in minutes.')
+@click.option('--timeout',
+              default=True,
+              help='Timeout if user inactivity is detected.')
+def boot(image_id, start, length, timeout):
     """Starts an instance."""
-    pass
+    params = (image_id,
+              start,
+              length,
+              0 if timeout else 1)
+    try:
+        request.boot(params)
+        click.echo('Success: Instance is starting now.')
+    except RuntimeError as error:
+        click.echo("ERROR: %s" % error.message)
 
 
+@vcl.command()
 def ssh():
     """Establishes an SSH connection with an instance."""
     pass
