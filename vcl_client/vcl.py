@@ -75,13 +75,13 @@ def delete():
 
 
 @vcl.command()
-@click.option('--search',
+@click.option('--filter',
               default=None,
               help='Filters by name of image.')
 @click.option('--refresh',
               is_flag=True,
               help='Requests a fresh image list from server.')
-def images(search, refresh):
+def images(filter_term, refresh):
     """Lists all of the images available in VCL."""
     auth_check()
     cached_image_list = cfg.get_conf(cfg.IMAGE_LIST_KEY)
@@ -97,9 +97,9 @@ def images(search, refresh):
     else:
         to_print = json.loads(cached_image_list)
 
-    if search:
+    if filter_term:
         to_print = [image for image in to_print
-                    if search.lower() in image['Name'].lower()]
+                    if filter_term.lower() in image['Name'].lower()]
 
     click.echo(tabulate.tabulate(to_print, headers='keys'))
 
