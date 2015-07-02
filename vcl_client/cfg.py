@@ -31,14 +31,19 @@ def get_conf(key):
         return None
 
 
-def write_conf(key, data, write=True):
+def set_conf(key, data, write=False):
     """Writes key:data to the config file."""
     CONF.set(CONF_SECTION, key, data)
 
     if write:
-        config_file = open(CONFIG_FILE_PATH, 'w')
-        CONF.write(config_file)
-        config_file.close()
+        write_conf()
+
+
+def write_conf():
+    """Writes configuration changes to the filesystem."""
+    config_file = open(CONFIG_FILE_PATH, 'w')
+    CONF.write(config_file)
+    config_file.close()
 
 
 def get_password():

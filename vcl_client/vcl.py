@@ -1,23 +1,14 @@
 """Entry point for CLI access."""
 
 import json
-import sys
 
 import click
 import tabulate
 import keyring
 
-from vcl_client import request
 from vcl_client import cfg
-
-
-def auth_check():
-    """On authenticated calls, checks is user/pass exist."""
-    username = cfg.get_conf(cfg.USERNAME_KEY)
-    password = cfg.get_password()
-    if not username or not password:
-        click.echo('Credentials not found. Run `vcl config`.')
-        sys.exit(1)
+from vcl_client import request
+from vcl_client import utils
 
 
 @click.group()
@@ -38,7 +29,7 @@ def vcl():
               help='Timeout if user inactivity is detected.')
 def boot(image_id, start, length, timeout):
     """Starts a request."""
-    auth_check()
+    utils.auth_check()
     params = (image_id,
               start,
               length,
@@ -62,15 +53,23 @@ def ssh():
 @click.option('--endpoint', prompt=True, default=cfg.DEFAULT_ENDPOINT)
 def config(username, password, endpoint):
     """Stores username in conf file and password in memory."""
-    cfg.write_conf(cfg.USERNAME_KEY, username, write=False)
+    cfg.set_conf(cfg.USERNAME_KEY, username)
     keyring.set_password('system', username, password)
-    cfg.write_conf(cfg.ENDPOINT_KEY, endpoint)
+    cfg.set_conf(cfg.ENDPOINT_KEY, endpoint)
+
+    try:
+        request.validate_credentials()
+        cfg.write_conf()
+
+        click.echo('Credentials and endpoint validated and recorded.')
+    except ValueError as error:
+        click.echo("Error: %s" % error.message)
 
 
 @vcl.command(name='list')
 def request_list():
     """Lists the currently running requests."""
-    auth_check()
+    utils.auth_check()
     requests = request.request_list()
 
     if requests:
@@ -109,7 +108,7 @@ def delete():
               help='Requests a fresh image list from server.')
 def images(filter_term, refresh):
     """Lists all of the images available in VCL."""
-    auth_check()
+    utils.auth_check()
     cached_image_list = cfg.get_conf(cfg.IMAGE_LIST_KEY)
 
     if refresh or not cached_image_list:
@@ -117,7 +116,7 @@ def images(filter_term, refresh):
         to_print = [[i['id'], i['name']] for i in all_images]
 
         # Caching response for subsequent queries
-        cfg.write_conf(cfg.IMAGE_LIST_KEY, json.dumps(to_print))
+        cfg.set_conf(cfg.IMAGE_LIST_KEY, json.dumps(to_print), write=True)
     else:
         to_print = json.loads(cached_image_list)
 
