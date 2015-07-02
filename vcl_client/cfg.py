@@ -9,7 +9,7 @@ CONFIG_FILE_PATH = os.path.expanduser('~/.vcl.conf')
 CONF_SECTION = 'vcl'
 
 DEFAULT_ENDPOINT = 'https://vcl.ncsu.edu/scheduling/index.php?mode=xmlrpccall'
-BASE_URL_KEY = 'xmlrpc_base_url'
+ENDPOINT_KEY = 'xmlrpc_base_url'
 IMAGE_LIST_KEY = 'image_list'
 USERNAME_KEY = 'username'
 
@@ -21,7 +21,6 @@ def initialize_config():
     """Sets the initial config file options."""
     if not CONF.has_section(CONF_SECTION):
         CONF.add_section(CONF_SECTION)
-        write_conf(BASE_URL_KEY, DEFAULT_ENDPOINT)
 
 
 def get_conf(key):
@@ -32,13 +31,14 @@ def get_conf(key):
         return None
 
 
-def write_conf(key, data):
+def write_conf(key, data, write=True):
     """Writes key:data to the config file."""
-    config_file = open(CONFIG_FILE_PATH, 'w')
-
     CONF.set(CONF_SECTION, key, data)
-    CONF.write(config_file)
-    config_file.close()
+
+    if write:
+        config_file = open(CONFIG_FILE_PATH, 'w')
+        CONF.write(config_file)
+        config_file.close()
 
 
 def get_password():

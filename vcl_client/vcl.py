@@ -16,7 +16,7 @@ def auth_check():
     username = cfg.get_conf(cfg.USERNAME_KEY)
     password = cfg.get_password()
     if not username or not password:
-        click.echo('Credentials not found. Run `vcl login`.')
+        click.echo('Credentials not found. Run `vcl config`.')
         sys.exit(1)
 
 
@@ -59,15 +59,18 @@ def ssh():
 @vcl.command()
 @click.option('--username', prompt=True)
 @click.option('--password', prompt=True, hide_input=True)
-def login(username, password):
+@click.option('--endpoint', prompt=True, default=cfg.DEFAULT_ENDPOINT)
+def config(username, password, endpoint):
     """Stores username in conf file and password in memory."""
-    cfg.write_conf(cfg.USERNAME_KEY, username)
+    cfg.write_conf(cfg.USERNAME_KEY, username, write=False)
     keyring.set_password('system', username, password)
+    cfg.write_conf(cfg.ENDPOINT_KEY, endpoint)
 
 
 @vcl.command(name='list')
 def request_list():
     """Lists the currently running requests."""
+    auth_check()
     requests = request.request_list()
 
     if requests:
