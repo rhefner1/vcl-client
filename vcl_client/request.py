@@ -12,7 +12,7 @@ REQUEST_LIST_ENDPOINT = 'XMLRPCgetRequestIds'
 
 def call_api(endpoint, params):
     """Calls the API."""
-    base_url = cfg.get_conf(cfg.BASE_URL_KEY)
+    base_url = cfg.get_conf(cfg.ENDPOINT_KEY)
     username = cfg.get_conf(cfg.USERNAME_KEY)
     data = xmlrpclib.dumps(params, endpoint)
     headers = {

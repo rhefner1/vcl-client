@@ -4,7 +4,6 @@ import mock
 from click import testing
 
 from vcl_client import vcl
-
 from vcl_client import cfg
 from tests import fakes
 
@@ -32,19 +31,24 @@ class TestAuthCheck(unittest.TestCase):
 
         vcl.auth_check()
 
-        mock_echo.assert_called_with('Credentials not found. Run `vcl login`.')
+        mock_echo.assert_called_with('Credentials not found. Run `vcl config`.')
         mock_sys.assert_called_with(1)
 
 
-class TestLogin(unittest.TestCase):
+class TestConfig(unittest.TestCase):
     @mock.patch('keyring.set_password')
     @mock.patch('vcl_client.cfg.write_conf')
-    def test_login(self, mock_write_conf, mock_set_pass):
+    def test_config(self, mock_write_conf, mock_set_pass):
         runner = testing.CliRunner()
-        runner.invoke(vcl.login,
-                      input='%s\n%s\n' % (fakes.USERNAME, fakes.PASSWORD))
+        inputs = (fakes.USERNAME, fakes.PASSWORD, fakes.ENDPOINT)
+        runner.invoke(vcl.config, input='%s\n%s\n%s\n' % inputs)
 
-        mock_write_conf.assert_called_with(cfg.USERNAME_KEY, fakes.USERNAME)
+        calls = [
+            mock.call(cfg.USERNAME_KEY, fakes.USERNAME, write=False),
+            mock.call(cfg.ENDPOINT_KEY, fakes.ENDPOINT)
+        ]
+
+        mock_write_conf.assert_has_calls(calls)
         mock_set_pass.assert_called_with('system', fakes.USERNAME,
                                          fakes.PASSWORD)
 
