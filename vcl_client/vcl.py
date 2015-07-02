@@ -101,7 +101,7 @@ def delete():
 
 
 @vcl.command()
-@click.option('--filter',
+@click.option('filter_term', '--filter',
               default=None,
               help='Filters by name of image.')
 @click.option('--refresh',
