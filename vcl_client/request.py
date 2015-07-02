@@ -7,7 +7,7 @@ from vcl_client import cfg
 
 BOOT_ENDPOINT = 'XMLRPCaddRequest'
 IMAGES_ENDPOINT = 'XMLRPCgetImages'
-INSTANCE_LIST_ENDPOINT = 'XMLRPCgetRequestIds'
+REQUEST_LIST_ENDPOINT = 'XMLRPCgetRequestIds'
 
 
 def call_api(endpoint, params):
@@ -44,7 +44,7 @@ def images():
     return response[0][0]
 
 
-def instance_list():
-    """Calls the API and returns a list of instances."""
-    response = call_api(INSTANCE_LIST_ENDPOINT, ())
+def request_list():
+    """Calls the API and returns a list of requests."""
+    response = call_api(REQUEST_LIST_ENDPOINT, ())
     return response[0][0]['requests']
