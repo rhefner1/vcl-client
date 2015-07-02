@@ -8,6 +8,7 @@ from vcl_client import cfg
 BOOT_ENDPOINT = 'XMLRPCaddRequest'
 IMAGES_ENDPOINT = 'XMLRPCgetImages'
 REQUEST_LIST_ENDPOINT = 'XMLRPCgetRequestIds'
+TEST_ENDPOINT = 'XMLRPCtest'
 
 
 def call_api(endpoint, params):
@@ -48,3 +49,17 @@ def request_list():
     """Calls the API and returns a list of requests."""
     response = call_api(REQUEST_LIST_ENDPOINT, ())
     return response[0][0]['requests']
+
+
+def validate_credentials():
+    """Calls a test API method to validate credentials."""
+    try:
+        response = call_api(TEST_ENDPOINT, ())
+        status = response[0][0]['status']
+
+        if status != 'success':
+            raise ValueError
+    except (xmlrpclib.Fault, ValueError):
+        raise ValueError('Endpoint did not accept credentials.')
+    except:
+        raise ValueError('Credentials or endpoint invalid.')
