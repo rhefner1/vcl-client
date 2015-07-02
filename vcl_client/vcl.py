@@ -37,7 +37,7 @@ def vcl():
               default=True,
               help='Timeout if user inactivity is detected.')
 def boot(image_id, start, length, timeout):
-    """Starts an instance."""
+    """Starts a request."""
     auth_check()
     params = (image_id,
               start,
@@ -45,14 +45,14 @@ def boot(image_id, start, length, timeout):
               0 if timeout else 1)
     try:
         request.boot(params)
-        click.echo('Success: Instance is starting now.')
+        click.echo('Success: Request is starting now.')
     except RuntimeError as error:
         click.echo("ERROR: %s" % error.message)
 
 
 @vcl.command()
 def ssh():
-    """Establishes an SSH connection with an instance."""
+    """Establishes an SSH connection with a request."""
     pass
 
 
@@ -66,13 +66,13 @@ def login(username, password):
 
 
 @vcl.command(name='list')
-def instance_list():
-    """Lists the currently running instances."""
-    instances = request.instance_list()
+def request_list():
+    """Lists the currently running requests."""
+    requests = request.request_list()
 
-    if instances:
+    if requests:
         headers = ['Image ID', 'Name', 'State', 'OS Type', 'OS']
-        instances = [
+        requests = [
             [
                 r['imageid'],
                 r['imagename'],
@@ -80,20 +80,20 @@ def instance_list():
                 r['ostype'],
                 r['OS']
             ]
-            for r in instances
+            for r in requests
         ]
-        click.echo(tabulate.tabulate(instances, headers=headers))
+        click.echo(tabulate.tabulate(requests, headers=headers))
     else:
-        click.echo('No instances found.')
+        click.echo('No requests found.')
 
 
 def extend():
-    """Extends the reservation time on an instance."""
+    """Extends the reservation time on a request."""
     pass
 
 
 def delete():
-    """Deletes an instance."""
+    """Deletes a request."""
     pass
 
 
