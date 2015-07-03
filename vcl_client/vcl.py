@@ -16,7 +16,7 @@ def vcl():
     """Creates and manages VMs hosted by the Apache VCL service."""
 
 
-@vcl.command()
+@vcl.command(name='request')
 @click.argument('image_id')
 @click.option('--start',
               default='now',
@@ -27,7 +27,7 @@ def vcl():
 @click.option('--timeout',
               default=True,
               help='Timeout if user inactivity is detected.')
-def boot(image_id, start, length, timeout):
+def request_instance(image_id, start, length, timeout):
     """Starts a request."""
     utils.auth_check()
     params = (image_id,
