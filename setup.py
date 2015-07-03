@@ -14,7 +14,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'vcl = vcl_client.vcl:vcl'
+            'vcl = vcl_client.cli:vcl'
         ]
     },
 )
