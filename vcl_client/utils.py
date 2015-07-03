@@ -14,3 +14,11 @@ def auth_check():
     if not username or not password:
         click.echo('Credentials not found. Run `vcl config`.')
         sys.exit(1)
+
+def is_number(string):
+    """Returns true if a string can be successfully cast into a number."""
+    try:
+        float(string)
+        return True
+    except ValueError:
+        return False
