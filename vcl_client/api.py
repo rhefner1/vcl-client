@@ -9,6 +9,9 @@ import click
 
 from vcl_client import cfg
 
+REQUEST_START = 'now'
+REQUEST_LENGTH = 480
+
 REQUEST_CONNECTION = 'XMLRPCgetRequestConnectData'
 REQUEST_ADD = 'XMLRPCaddRequest'
 REQUEST_STATUS = 'XMLRPCgetRequestStatus'
@@ -75,9 +78,9 @@ def images(filter_term=None, refresh=False):
     return all_images
 
 
-def request(image_id, start, length, timeout):
+def request(image_id):
     """Calls the API and throws an error if request isn't successful."""
-    params = (image_id, start, length, timeout)
+    params = (image_id, REQUEST_START, REQUEST_LENGTH)
     response = call_api(REQUEST_ADD, params)
     status = response['status']
 
@@ -95,14 +98,12 @@ def request_details(request_id):
     status = response['status']
 
     if status == 'ready':
-        ip_address = response['serverIP']
+        ip_addr = response['serverIP']
         user = response['user']
-        password = response['password']
+        password = response['password'] if response['password'] else None
+        connect_methods = response['connectMethods']
 
-        if not password:
-            password = '(your campus password)'
-
-        return ip_address, user, password
+        return ip_addr, user, password, connect_methods
     elif status == 'notready':
         raise RuntimeError("Request isn't ready to connect.")
     else:
