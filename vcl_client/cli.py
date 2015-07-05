@@ -14,35 +14,38 @@ def vcl():
 
 @vcl.command(name='request')
 @click.argument('image')
-@click.option('--start',
-              default='now',
-              help='UNIX timestamp for the start of the reservation.')
-@click.option('--length',
-              default=480,
-              help='Length of the reservation in minutes.')
-@click.option('--timeout',
-              default=True,
-              is_flag=True,
-              help='Timeout if user inactivity is detected.')
 @click.option('--no-status',
               is_flag=True,
-              help='Do not check request status.')
-def request_instance(image, start, length, timeout, no_status):
-    """Creates a new request for virtual computing resources."""
+              help='Do not check status of request.')
+@click.option('--no-connect',
+              is_flag=True,
+              help='Do not automatically connect to request.')
+def request_instance(image, no_status, no_connect):
+    """Creates a new request for resources."""
     image_id = utils.get_image_id(image)
-    timeout = 0 if timeout else 1
 
     try:
-        request_id = api.request(image_id, start, length, timeout)
+        request_id = api.request(image_id)
+        click.echo('\nRequest is starting now.')
     except RuntimeError as error:
         utils.handle_error(error.message)
         return
 
-    click.echo('Request is starting now.\n')
-
     if no_status:
         return
+
+    # If this doesn't raise an exception, request is ready
     utils.check_request_status(request_id)
+
+    if no_connect:
+        utils.print_connection_details(request_id)
+        return
+
+    try:
+        utils.auto_connect(request_id)
+    except RuntimeError as error:
+        utils.handle_error(error.message)
+        return
 
 
 def ssh():
