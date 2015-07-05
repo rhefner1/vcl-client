@@ -22,18 +22,27 @@ def vcl():
               help='Length of the reservation in minutes.')
 @click.option('--timeout',
               default=True,
+              is_flag=True,
               help='Timeout if user inactivity is detected.')
-def request_instance(image, start, length, timeout):
+@click.option('--no-status',
+              is_flag=True,
+              help='Do not check request status.')
+def request_instance(image, start, length, timeout, no_status):
     """Creates a new request for virtual computing resources."""
     image_id = utils.get_image_id(image)
     timeout = 0 if timeout else 1
 
     try:
-        api.request(image_id, start, length, timeout)
+        request_id = api.request(image_id, start, length, timeout)
     except RuntimeError as error:
-        click.echo("ERROR: %s" % error.message)
+        utils.handle_error(error.message)
+        return
 
-    click.echo('Success: Request is starting now.')
+    click.echo('Request is starting now.\n')
+
+    if no_status:
+        return
+    utils.check_request_status(request_id)
 
 
 def ssh():
@@ -85,7 +94,7 @@ def config(username, password, endpoint):
         cfg.vcl_conf(username, password, endpoint)
         utils.validate_credentials()
     except ValueError as error:
-        click.echo("Error: %s" % error.message)
+        utils.handle_error(error.message)
 
     click.echo('Credentials and endpoint validated and recorded.')
 

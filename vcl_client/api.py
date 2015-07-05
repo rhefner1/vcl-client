@@ -9,10 +9,14 @@ import click
 
 from vcl_client import cfg
 
-REQUEST_ENDPOINT = 'XMLRPCaddRequest'
+REQUEST_CONNECTION = 'XMLRPCgetRequestConnectData'
+REQUEST_ADD = 'XMLRPCaddRequest'
+REQUEST_STATUS = 'XMLRPCgetRequestStatus'
 IMAGES_ENDPOINT = 'XMLRPCgetImages'
 REQUEST_LIST_ENDPOINT = 'XMLRPCgetRequestIds'
 TEST_ENDPOINT = 'XMLRPCtest'
+
+IP_ADDR_SERVER = 'https://api.ipify.org'
 
 
 def auth_check():
@@ -43,18 +47,7 @@ def call_api(endpoint, params):
     response = urllib2.urlopen(req)
 
     raw_xml = response.read()
-    return xmlrpclib.loads(raw_xml)
-
-
-def request(image_id, start, length, timeout):
-    """Calls the API and throws an error if request isn't successful."""
-    params = (image_id, start, length, timeout)
-    response = call_api(REQUEST_ENDPOINT, params)
-    status = response[0][0]['status']
-
-    if status != 'success':
-        raise RuntimeError("Got unknown status: %s. Full response: %s."
-                           % (status, response))
+    return xmlrpclib.loads(raw_xml)[0][0]
 
 
 def images(filter_term=None, refresh=False):
@@ -63,8 +56,7 @@ def images(filter_term=None, refresh=False):
 
     if refresh or not cached_image_list:
         response = call_api(IMAGES_ENDPOINT, ())
-        all_image_data = response[0][0]
-        all_images = [[i['id'], i['name']] for i in all_image_data]
+        all_images = [[i['id'], i['name']] for i in response]
 
         # Caching response for subsequent queries
         cfg.set_conf(cfg.IMAGE_LIST_KEY, json.dumps(all_images), write=True)
@@ -83,10 +75,44 @@ def images(filter_term=None, refresh=False):
     return all_images
 
 
+def request(image_id, start, length, timeout):
+    """Calls the API and throws an error if request isn't successful."""
+    params = (image_id, start, length, timeout)
+    response = call_api(REQUEST_ADD, params)
+    status = response['status']
+
+    if status != 'success':
+        raise RuntimeError("%s." % response['errormsg'])
+
+    return response['requestid']
+
+
+def request_details(request_id):
+    """Requests connection details for a request."""
+    remote_ip = urllib2.urlopen(IP_ADDR_SERVER).read()
+    params = (request_id, remote_ip)
+    response = call_api(REQUEST_CONNECTION, params)
+    status = response['status']
+
+    if status == 'ready':
+        ip_address = response['serverIP']
+        user = response['user']
+        password = response['password']
+
+        if not password:
+            password = '(your campus password)'
+
+        return ip_address, user, password
+    elif status == 'notready':
+        raise RuntimeError("Request isn't ready to connect.")
+    else:
+        raise RuntimeError("%s" % response['errormsg'])
+
+
 def request_list():
     """Calls the API and returns a list of requests."""
     response = call_api(REQUEST_LIST_ENDPOINT, ())
-    all_request_data = response[0][0]['requests']
+    all_request_data = response['requests']
 
     if all_request_data:
         return [
@@ -95,7 +121,8 @@ def request_list():
                 r['imagename'],
                 r['state'],
                 r['ostype'],
-                r['OS']
+                r['OS'],
+                r['requestid']
             ]
             for r in all_request_data
         ]
@@ -103,10 +130,24 @@ def request_list():
         return None
 
 
+def request_status(request_id):
+    """Checks the status of a request."""
+    params = (request_id,)
+    response = call_api(REQUEST_STATUS, params)
+    status = response['status']
+
+    try:
+        time_left = response['time']
+    except KeyError:
+        time_left = None
+
+    return status, time_left
+
+
 def test_call():
     """Calls a test API method."""
     response = call_api(TEST_ENDPOINT, ())
-    status = response[0][0]['status']
+    status = response['status']
 
     if status != 'success':
         raise ValueError

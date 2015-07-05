@@ -1,5 +1,7 @@
 """Helper functions for the rest of the client."""
 
+import time
+import sys
 import xmlrpclib
 
 import click
@@ -7,10 +9,39 @@ import tabulate
 
 from vcl_client import api
 
+CHECK_TIMEOUT = 15
 HEADERS = {
     'image': ['ID', 'Name'],
-    'request': ['Image ID', 'Name', 'State', 'OS Type', 'OS']
+    'request': ['Image ID', 'Name', 'State', 'OS Type', 'OS', 'Request ID']
 }
+
+
+def check_request_status(request_id):
+    """Checks the status of a request and reports when it is ready."""
+    while True:
+        click.echo('Checking status...   ', nl=False)
+        status, time_left = api.request_status(request_id)
+
+        if status == 'ready':
+            click.secho('Request is ready!', fg='green')
+            print_connection_details(request_id)
+            break
+        elif status == 'loading':
+            minute = minute_spelling(time_left)
+            click.secho("%s %s left." % (time_left, minute), fg='cyan')
+        else:
+            handle_error("Received status '%s'." % status)
+
+        time.sleep(CHECK_TIMEOUT)
+
+
+def cli_print_table(to_print, data_type):
+    """Formats a list into a table suitable for CLI output."""
+    if data_type not in HEADERS:
+        raise ValueError("Header '%s' not recognized." % data_type)
+
+    table = tabulate.tabulate(to_print, headers=HEADERS[data_type])
+    click.echo(table)
 
 
 def get_image_id(image):
@@ -34,6 +65,12 @@ def get_image_id(image):
     return image
 
 
+def handle_error(message):
+    """Prints error message and exits with an error code."""
+    click.secho("ERROR: %s" % message, err=True, fg='red')
+    sys.exit(1)
+
+
 def is_number(string):
     """Returns true if a string can be successfully cast into a number."""
     try:
@@ -43,13 +80,23 @@ def is_number(string):
         return False
 
 
-def cli_print_table(to_print, data_type):
-    """Formats a list into a table suitable for CLI output."""
-    if data_type not in HEADERS:
-        raise ValueError("Header '%s' not recognized." % data_type)
+def minute_spelling(time_left):
+    """If there is only 1 minute left, don't pluralize 'minute'."""
+    if time_left == 1:
+        return 'minute'
+    else:
+        return 'minutes'
 
-    table = tabulate.tabulate(to_print, headers=HEADERS[data_type])
-    click.echo(table)
+
+def print_connection_details(request_id):
+    """Prints request connection details."""
+    click.echo('Retrieving connection details...')
+
+    ip_address, user, password = api.request_details(request_id)
+    click.echo('\nConnection details:')
+    click.echo(' - IP address: %s' % ip_address)
+    click.echo(' - Username: %s' % user)
+    click.echo(' - Password: %s' % password)
 
 
 def validate_credentials():
