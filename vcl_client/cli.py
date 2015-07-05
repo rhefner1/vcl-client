@@ -26,9 +26,10 @@ def vcl():
 def request_instance(image, start, length, timeout):
     """Creates a new request for virtual computing resources."""
     image_id = utils.get_image_id(image)
-    params = (image_id, start, length, 0 if timeout else 1)
+    timeout = 0 if timeout else 1
+
     try:
-        api.request(params)
+        api.request(image_id, start, length, timeout)
     except RuntimeError as error:
         click.echo("ERROR: %s" % error.message)
 

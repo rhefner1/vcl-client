@@ -46,8 +46,9 @@ def call_api(endpoint, params):
     return xmlrpclib.loads(raw_xml)
 
 
-def request(params):
+def request(image_id, start, length, timeout):
     """Calls the API and throws an error if request isn't successful."""
+    params = (image_id, start, length, timeout)
     response = call_api(REQUEST_ENDPOINT, params)
     status = response[0][0]['status']
 
