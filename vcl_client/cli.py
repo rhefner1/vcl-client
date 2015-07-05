@@ -48,9 +48,26 @@ def request_instance(image, no_status, no_connect):
         return
 
 
-def ssh():
-    """Establishes an SSH connection with a request."""
-    pass
+@vcl.command()
+@click.option('--request-id',
+              help='ID of the request to connect to.')
+@click.option('--details',
+              is_flag=True,
+              help='Only show the connection details.')
+def connect(request_id, details):
+    """Establishes a connection with a request."""
+    if not request_id:
+        request_id = utils.choose_active_request()
+
+    if details:
+        utils.print_connection_details(request_id)
+        return
+
+    try:
+        utils.auto_connect(request_id)
+    except RuntimeError as error:
+        utils.handle_error(error.message)
+        return
 
 
 @vcl.command()
