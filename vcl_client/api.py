@@ -1,19 +1,34 @@
 """Handles the XMLRPC server communication"""
 
-import urllib2
 import json
+import sys
+import urllib2
 import xmlrpclib
+
+import click
 
 from vcl_client import cfg
 
-BOOT_ENDPOINT = 'XMLRPCaddRequest'
+REQUEST_ENDPOINT = 'XMLRPCaddRequest'
 IMAGES_ENDPOINT = 'XMLRPCgetImages'
 REQUEST_LIST_ENDPOINT = 'XMLRPCgetRequestIds'
 TEST_ENDPOINT = 'XMLRPCtest'
 
 
+def auth_check():
+    """Checks if user/pass exist."""
+    username = cfg.get_conf(cfg.USERNAME_KEY)
+    password = cfg.get_password()
+
+    if not username or not password:
+        click.echo('Credentials not found. Run `vcl config`.')
+        sys.exit(1)
+
+
 def call_api(endpoint, params):
     """Calls the API."""
+    auth_check()
+
     base_url = cfg.get_conf(cfg.ENDPOINT_KEY)
     username = cfg.get_conf(cfg.USERNAME_KEY)
     data = xmlrpclib.dumps(params, endpoint)
@@ -26,13 +41,14 @@ def call_api(endpoint, params):
 
     req = urllib2.Request(base_url, data, headers)
     response = urllib2.urlopen(req)
+
     raw_xml = response.read()
     return xmlrpclib.loads(raw_xml)
 
 
-def boot(params):
-    """Calls the APi and throws an error if request isn't successful."""
-    response = call_api(BOOT_ENDPOINT, params)
+def request(params):
+    """Calls the API and throws an error if request isn't successful."""
+    response = call_api(REQUEST_ENDPOINT, params)
     status = response[0][0]['status']
 
     if status != 'success':
@@ -69,18 +85,27 @@ def images(filter_term=None, refresh=False):
 def request_list():
     """Calls the API and returns a list of requests."""
     response = call_api(REQUEST_LIST_ENDPOINT, ())
-    return response[0][0]['requests']
+    all_request_data = response[0][0]['requests']
+
+    if all_request_data:
+        return [
+            [
+                r['imageid'],
+                r['imagename'],
+                r['state'],
+                r['ostype'],
+                r['OS']
+            ]
+            for r in all_request_data
+        ]
+    else:
+        return None
 
 
-def validate_credentials():
-    """Calls a test API method to validate credentials."""
-    try:
-        response = call_api(TEST_ENDPOINT, ())
-        status = response[0][0]['status']
+def test_call():
+    """Calls a test API method."""
+    response = call_api(TEST_ENDPOINT, ())
+    status = response[0][0]['status']
 
-        if status != 'success':
-            raise ValueError
-    except (xmlrpclib.Fault, ValueError):
-        raise ValueError('Endpoint did not accept credentials.')
-    except:
-        raise ValueError('Credentials or endpoint invalid.')
+    if status != 'success':
+        raise ValueError
