@@ -8,6 +8,7 @@ setup(
         'click',
         'keyring',
         'mock',
+        'paramiko',
         'pkginfo',
         'pylint',
         'tabulate',
