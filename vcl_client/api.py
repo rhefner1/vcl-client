@@ -15,6 +15,7 @@ REQUEST_LENGTH = 480
 REQUEST_ADD = 'XMLRPCaddRequest'
 REQUEST_CONNECTION = 'XMLRPCgetRequestConnectData'
 REQUEST_DELETE = 'XMLRPCendRequest'
+REQUEST_EXTEND = 'XMLRPCextendRequest'
 REQUEST_STATUS = 'XMLRPCgetRequestStatus'
 IMAGES_ENDPOINT = 'XMLRPCgetImages'
 REQUEST_LIST_ENDPOINT = 'XMLRPCgetRequestIds'
@@ -58,6 +59,15 @@ def delete(request_id):
     """Calls the API to delete requests."""
     params = (request_id,)
     response = call_api(REQUEST_DELETE, params)
+    status = response['status']
+
+    if status != 'success':
+        raise RuntimeError("%s." % response['errormsg'])
+
+def extend(request_id, extend_time):
+    """Calls the API to delete requests."""
+    params = (request_id, extend_time)
+    response = call_api(REQUEST_EXTEND, params)
     status = response['status']
 
     if status != 'success':

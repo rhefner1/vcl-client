@@ -111,10 +111,20 @@ def delete(request_id):
     except RuntimeError as error:
         utils.handle_error(error.message)
 
-
-def extend():
+@vcl.command()
+@click.argument('extend_time')
+@click.option('--request-id',
+              help='ID of the request to connect to.')
+def extend(extend_time, request_id):
     """Extends the reservation time on a request."""
-    pass
+    if not request_id:
+        request_id = utils.choose_active_request()
+
+    try:
+        api.extend(request_id, extend_time)
+        click.echo("Request %s extended successfully." % request_id)
+    except RuntimeError as error:
+        utils.handle_error(error.message)
 
 
 @vcl.command()
