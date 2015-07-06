@@ -64,6 +64,7 @@ def delete(request_id):
     if status != 'success':
         raise RuntimeError("%s." % response['errormsg'])
 
+
 def extend(request_id, extend_time):
     """Calls the API to delete requests."""
     params = (request_id, extend_time)

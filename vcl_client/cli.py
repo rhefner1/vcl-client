@@ -4,6 +4,7 @@ import click
 
 from vcl_client import api
 from vcl_client import cfg
+from vcl_client import auto_connect
 from vcl_client import utils
 
 
@@ -38,11 +39,11 @@ def request_instance(image, no_status, no_connect):
     utils.check_request_status(request_id)
 
     if no_connect:
-        utils.print_connection_details(request_id)
+        auto_connect.print_connection_details(request_id)
         return
 
     try:
-        utils.auto_connect(request_id)
+        auto_connect.auto_connect(request_id)
     except RuntimeError as error:
         utils.handle_error(error.message)
         return
@@ -60,11 +61,11 @@ def connect(request_id, details):
         request_id = utils.choose_active_request()
 
     if details:
-        utils.print_connection_details(request_id)
+        auto_connect.print_connection_details(request_id)
         return
 
     try:
-        utils.auto_connect(request_id)
+        auto_connect.auto_connect(request_id)
     except RuntimeError as error:
         utils.handle_error(error.message)
         return
@@ -93,6 +94,7 @@ def request_list():
     else:
         click.echo('No requests found.')
 
+
 @vcl.command()
 @click.option('--request-id',
               help='ID of the request to connect to.')
@@ -110,6 +112,7 @@ def delete(request_id):
         click.echo("Request %s deleted successfully." % request_id)
     except RuntimeError as error:
         utils.handle_error(error.message)
+
 
 @vcl.command()
 @click.argument('extend_time')
