@@ -26,7 +26,7 @@ def request_instance(image, no_status, no_connect):
 
     try:
         request_id = api.request(image_id)
-        click.echo('\nRequest is starting now.')
+        click.echo('Request is starting now.\n')
     except RuntimeError as error:
         utils.handle_error(error.message)
         return
@@ -93,10 +93,23 @@ def request_list():
     else:
         click.echo('No requests found.')
 
-
-def delete():
+@vcl.command()
+@click.option('--request-id',
+              help='ID of the request to connect to.')
+def delete(request_id):
     """Deletes a request."""
-    pass
+    if not request_id:
+        request_id = utils.choose_active_request()
+
+    msg = "Are you sure you want to delete request %s?" % request_id
+    if not click.confirm(msg):
+        return
+
+    try:
+        api.delete(request_id)
+        click.echo("Request %s deleted successfully." % request_id)
+    except RuntimeError as error:
+        utils.handle_error(error.message)
 
 
 def extend():

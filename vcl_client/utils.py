@@ -131,7 +131,7 @@ def get_active_requests():
         ]
 
     if not active_requests:
-        raise RuntimeError('No active requests to connect to.')
+        raise RuntimeError('No active requests found.')
 
     return active_requests
 

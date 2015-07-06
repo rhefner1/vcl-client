@@ -12,8 +12,9 @@ from vcl_client import cfg
 REQUEST_START = 'now'
 REQUEST_LENGTH = 480
 
-REQUEST_CONNECTION = 'XMLRPCgetRequestConnectData'
 REQUEST_ADD = 'XMLRPCaddRequest'
+REQUEST_CONNECTION = 'XMLRPCgetRequestConnectData'
+REQUEST_DELETE = 'XMLRPCendRequest'
 REQUEST_STATUS = 'XMLRPCgetRequestStatus'
 IMAGES_ENDPOINT = 'XMLRPCgetImages'
 REQUEST_LIST_ENDPOINT = 'XMLRPCgetRequestIds'
@@ -51,6 +52,16 @@ def call_api(endpoint, params):
 
     raw_xml = response.read()
     return xmlrpclib.loads(raw_xml)[0][0]
+
+
+def delete(request_id):
+    """Calls the API to delete requests."""
+    params = (request_id,)
+    response = call_api(REQUEST_DELETE, params)
+    status = response['status']
+
+    if status != 'success':
+        raise RuntimeError("%s." % response['errormsg'])
 
 
 def images(filter_term=None, refresh=False):
