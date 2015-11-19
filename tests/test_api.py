@@ -1,7 +1,5 @@
 import unittest
-
 import mock
-
 from vcl_client import api
 from vcl_client import cfg
 from tests import fakes
