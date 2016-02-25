@@ -7,6 +7,7 @@ setup(
     install_requires=[
         'click',
         'keyring',
+        'keyrings.alt',
         'mock',
         'pkginfo',
         'pylint',
