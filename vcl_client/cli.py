@@ -1,6 +1,7 @@
 """Entry point for CLI access."""
 
 import click
+
 from vcl_client import api
 from vcl_client import cfg
 from vcl_client import utils
@@ -16,12 +17,13 @@ def vcl():
 @click.option('--no-status',
               is_flag=True,
               help='Do not check status of request.')
-@click.option('--no-connect',
-              is_flag=True,
-              help='Do not automatically connect to request.')
-def request_instance(image, no_status, no_connect):
+def request_instance(image, no_status):
     """Creates a new request for resources."""
-    image_id = utils.get_image_id(image)
+    try:
+        image_id = utils.get_image_id(image)
+    except ValueError as error:
+        utils.handle_error(error.message)
+        return
 
     try:
         request_id = api.request(image_id)
@@ -43,10 +45,7 @@ def request_instance(image, no_status, no_connect):
 @vcl.command()
 @click.option('--request-id',
               help='ID of the request to connect to.')
-@click.option('--details',
-              is_flag=True,
-              help='Only show the connection details.')
-def connect(request_id, details):
+def connect(request_id):
     """Establishes a connection with a request."""
     if not request_id:
         request_id = utils.choose_active_request()

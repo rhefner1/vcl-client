@@ -1,10 +1,12 @@
 """Helper functions for the rest of the client."""
 
-import time
 import sys
+import time
 import xmlrpclib
+
 import click
 import tabulate
+
 from vcl_client import api
 
 ACTIVE_STATES = ['reserved', 'inuse']
@@ -93,11 +95,7 @@ def get_image_id(image):
     if is_number(image):
         return image
 
-    try:
-        possible_images = api.images(filter_term=image)
-    except ValueError as error:
-        click.echo("Error: %s" % error.message)
-        return
+    possible_images = api.images(filter_term=image)
 
     if len(possible_images) == 1:
         image = possible_images[0][0]
